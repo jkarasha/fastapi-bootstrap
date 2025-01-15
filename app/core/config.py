@@ -16,7 +16,7 @@ class Config(CustomBaseSettings):
     DATABASE_POOL_TTL: int = 60 * 20  # 20 minutes
     DATABASE_POOL_PRE_PING: bool = True
 
-    ENVIRONMENT: Environment = Environment.PRODUCTION
+    ENVIRONMENT: Environment = Environment.LOCAL
 
     SENTRY_DSN: str | None = None
 
