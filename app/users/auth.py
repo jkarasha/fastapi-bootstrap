@@ -1,6 +1,7 @@
 import os
+import uuid
 from fastapi import Depends
-from fastapi_users import FastAPIUsers
+from fastapi_users import FastAPIUsers, models
 from fastapi_users.authentication import BearerTransport, JWTStrategy, AuthenticationBackend
 #
 from .schemas import UserRead, UserCreate, UserUpdate
@@ -9,7 +10,7 @@ from ..db.models import User
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-def get_jwt_strategy() -> JWTStrategy:
+def get_jwt_strategy() -> JWTStrategy[models.UP, models.ID]:
     return JWTStrategy(secret=SECRET_KEY, lifetime_seconds=3600)
 
 auth_backend = AuthenticationBackend(
@@ -18,7 +19,7 @@ auth_backend = AuthenticationBackend(
     get_strategy=get_jwt_strategy,
 )
 
-fastapi_users = FastAPIUsers[User, int](
+fastapi_users = FastAPIUsers[User, uuid.UUID](
     get_user_manager,
     [auth_backend]
 )
