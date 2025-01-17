@@ -6,7 +6,8 @@ from fastapi_users.authentication import BearerTransport, JWTStrategy, Authentic
 #
 from .schemas import UserRead, UserCreate, UserUpdate
 from .manager import get_user_manager
-from ..db.models import User
+
+from .models import User
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 

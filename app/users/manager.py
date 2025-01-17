@@ -7,8 +7,7 @@ from fastapi_users import BaseUserManager, UUIDIDMixin
 from fastapi_users.db import SQLAlchemyUserDatabase
 #
 from .schemas import UserCreate
-from ..db.models import User, get_user_db
-from ..db.base import SessionLocal
+from .models import User, get_user_db
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 

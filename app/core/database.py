@@ -1,6 +1,6 @@
 # Refactor code from /db folder into database.py file
 from typing import Any
-
+from collections.abc import AsyncGenerator
 from sqlalchemy import (
     CursorResult,
     Insert,
@@ -8,11 +8,12 @@ from sqlalchemy import (
     Select,
     Update
 )
-from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
+from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker, create_async_engine
 from .config import settings
 from .constants import DB_NAMING_CONVENTION
 
-from ..db.base import Base
+Base: DeclarativeMeta = declarative_base()
 
 DATABASE_URL = str(settings.DATABASE_ASYNC_URL)
 
@@ -23,13 +24,23 @@ engine = create_async_engine(
     pool_pre_ping = settings.DATABASE_POOL_PRE_PING
 )
 
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
+
 metadata = MetaData(naming_convention=DB_NAMING_CONVENTION)
+
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session
 
 async def fetch_one(
     select_query: Select | Insert | Update,
     connection: AsyncConnection | None = None,
     commit_after: bool = False
-) -> dict[str, Any] | None:
+    ) -> dict[str, Any] | None:
     if not connection:
         async with engine.connect() as connection:
             cursor = await _execute_query(select_query, connection, commit_after)
@@ -42,7 +53,7 @@ async def execute(
     query: Insert | Update,
     connection: AsyncConnection = None,
     commit_after: bool = False,
-) -> None:
+    ) -> None:
     if not connection:
         async with engine.connect() as connection:
             await _execute_query(query, connection, commit_after)
@@ -50,18 +61,16 @@ async def execute(
 
     await _execute_query(query, connection, commit_after)
 
-
 async def _execute_query(
     query: Select | Insert | Update,
     connection: AsyncConnection,
     commit_after: bool = False,
-) -> CursorResult:
+    ) -> CursorResult:
     result = await connection.execute(query)
     if commit_after:
         await connection.commit()
 
     return result
-
 
 async def get_db_connection() -> AsyncConnection:
     connection = await engine.connect()

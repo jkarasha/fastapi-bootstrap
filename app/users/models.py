@@ -1,11 +1,11 @@
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession 
+from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 
-from fastapi_users.db import SQLAlchemyBaseUserTableUUID
-
-from ..core.database import Base
+from ..core.database import Base, get_async_session
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
-    short_name: str | None = None
-    full_name: str | None = None
+    pass
 
-    def __str__(self):
-        return self.short_name or self.full_name or self.email
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
