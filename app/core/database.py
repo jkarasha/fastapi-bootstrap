@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncConnection, create_async_engine
 from .config import settings
 from .constants import DB_NAMING_CONVENTION
 
+from ..db.base import Base
+
 DATABASE_URL = str(settings.DATABASE_ASYNC_URL)
 
 engine = create_async_engine(
