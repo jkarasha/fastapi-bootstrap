@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(Uvicorn) Debug FastAPI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app", // Replace `main` with the Python module containing your FastAPI app
+        "--host", "127.0.0.1",
+        "--port", "8000",
+        "--reload"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "(CLI) Debug FastAPI",
+      "type": "python",
+      "request": "launch",
+      "program": "fastapi dev",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      }
+    }
+  ]
+}
+
