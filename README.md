@@ -25,8 +25,8 @@ uv --version
 Create a new directory for the project and initialize it using `uv`:
 
 ```bash
-mkdir fastapi-project
-cd fastapi-project
+mkdir fastapi-bootstrap
+cd fastapi-bootstrap
 uv init
 ```
 
@@ -57,15 +57,15 @@ fastapi-project/
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py
+│   │   └── constants.py
+│   │   └── database.py
+│   │   └── exceptions.py
 │   │   └── security.py
-│   ├── db/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   └── models.py
 │   ├── users/
 │   │   ├── __init__.py
 │   │   ├── auth.py
 │   │   ├── manager.py
+│   │   ├── models.py
 │   │   └── schemas.py
 │   └── api/
 │       ├── __init__.py
@@ -89,22 +89,44 @@ SECRET_KEY=your_secret_key_here
 
 ---
 
-## 4. Database Configuration (`app/db/base.py`) 🗄️⚙️🔗
+## 4. Database Configuration (`app/core/database.py`) 🗄️⚙️🔗
 
 ```python
-from sqlalchemy import create_engine
+from typing import Any
+from collections.abc import AsyncGenerator
+from sqlalchemy import (
+    CursorResult,
+    Insert,
+    MetaData,
+    Select,
+    Update
+)
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
-from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker, create_async_engine
+from .config import settings
+from .constants import DB_NAMING_CONVENTION
 
 Base: DeclarativeMeta = declarative_base()
+
+DATABASE_URL = str(settings.DATABASE_ASYNC_URL)
+
+engine = create_async_engine(
+    DATABASE_URL,
+    pool_size = settings.DATABASE_POOL_SIZE,
+    pool_recycle = settings.DATABASE_POOL_TTL,
+    pool_pre_ping = settings.DATABASE_POOL_PRE_PING
+)
+
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
+
+metadata = MetaData(naming_convention=DB_NAMING_CONVENTION)
+
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_s
 ```
 
 ---
@@ -126,18 +148,20 @@ class UserUpdate(schemas.BaseUserUpdate):
     pass
 ```
 
-### 5.2 User Table (`app/db/models.py`) 🛠️📊🗄️
+### 5.2 User Table (`app/users/models.py`) 🛠️📊🗄️
 
 ```python
-from fastapi_users.db import SQLAlchemyBaseUserTable
-from sqlalchemy import Column, String
-from sqlalchemy import Integer
-from ..db.base import Base
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession 
+from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 
-class User(SQLAlchemyBaseUserTable[int], Base):
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+from ..core.database import Base, get_async_session
+
+class User(SQLAlchemyBaseUserTableUUID, Base):
+    pass
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session, User)
 ```
 
 ---
