@@ -5,11 +5,11 @@ import sentry_sdk
 from fastapi import FastAPI, Request, Depends
 from starlette.middleware.cors import CORSMiddleware
 
-from .core.config import app_configs, settings
-from .users.models import User
-from .core.database import create_db_and_tables
-from .users.schemas import UserCreate, UserRead, UserUpdate
-from .users.auth import auth_backend, current_active_user, fastapi_users
+from app.core.config import app_configs, settings
+from app.users.models import User
+from app.core.database import create_db_and_tables
+from app.users.schemas import UserCreate, UserRead, UserUpdate
+from app.users.auth import auth_backend, current_active_user, fastapi_users
 
 @asynccontextmanager
 async def lifespan(_application: FastAPI) -> AsyncGenerator:

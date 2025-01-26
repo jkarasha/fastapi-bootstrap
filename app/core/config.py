@@ -2,7 +2,7 @@ from typing import Any
 from pydantic import PostgresDsn, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .constants import Environment
+from app.core.constants import Environment
 
 class CustomBaseSettings(BaseSettings):
     model_config = SettingsConfigDict(

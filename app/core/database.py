@@ -10,8 +10,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, async_sessionmaker, create_async_engine
-from .config import settings
-from .constants import DB_NAMING_CONVENTION
+
+from app.core.config import settings
+from app.core.constants import DB_NAMING_CONVENTION
 
 Base: DeclarativeMeta = declarative_base()
 

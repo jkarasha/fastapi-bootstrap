@@ -4,10 +4,10 @@ from fastapi import Depends
 from fastapi_users import FastAPIUsers, models
 from fastapi_users.authentication import BearerTransport, JWTStrategy, AuthenticationBackend
 #
-from .schemas import UserRead, UserCreate, UserUpdate
-from .manager import get_user_manager
+from app.users.schemas import UserRead, UserCreate, UserUpdate
+from app.users.manager import get_user_manager
 
-from .models import User
+from app.users.models import User
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
